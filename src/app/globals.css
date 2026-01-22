@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  /* Color styles */
+  --brand-primary: rgb(118, 166, 230);
+  --background-primary: rgba(251, 251, 251, 1);
+  --background-non-opaque: rgba(255, 255, 255, 0.3);
+  --surface-primary: rgba(240, 240, 240, 1);
+  --surface-secondary: rgba(224, 224, 224, 1);
+  --surface-tertiary: rgba(201, 201, 201, 1);
+  --text-primary: rgba(33, 33, 33, 1);
+  --text-secondary: rgba(33, 33, 33, 0.8);
+  --text-tertiary: rgba(33, 33, 33, 0.6);
+  --text-quaternary: rgba(0, 0, 0, 0.4);
+  --text-link: rgba(44, 37, 245, 1);
+  --separator-light: rgba(255, 255, 255, 0.1);
+  --separator-medium: rgba(0, 0, 0, 0.1);
+  --separator-subtle: rgba(0, 0, 0, 0.05);
+
+  /* Text-size styles */
+  --font-size-h1: clamp(1.8rem, 5vw, 2.7rem);
+  --font-size-h2: clamp(1.3rem, 3.5vw, 1.8rem);
+  --font-size-h3: clamp(1.1rem, 2.5vw, 1.3rem);
+  --font-size-h4: clamp(1.05rem, 2.5vw, 1.1rem);
+  --font-size-body: clamp(0.9rem, 2vw, 1rem);
+  --font-size-small: clamp(0.85rem, 1.8vw, 0.9rem);
+  --font-size-footnote: clamp(0.8rem, 1.6vw, 0.85rem);
+  --font-size-caption: clamp(0.75rem, 1.4vw, 0.8rem);
+
+  /* Container & Layout */
+  --container-max: 1200px;
+  --container-padding: clamp(1rem, 5vw, 2rem);
+  --section-spacing: clamp(3rem, 8vw, 6rem);
+  --card-padding: clamp(1.5rem, 3vw, 2rem);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 300ms ease-in-out;
+  --transition-slow: 600ms ease-in-out;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+}
+
+h4 {
+  font-size: var(--font-size-h4);
+}
+
+p {
+  font-size: var(--font-size-body);
+}
+
+small {
+  font-size: var(--font-size-small);
+}
+
+body {
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--font-size-body);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Hide scrollbar for filter sidebar while maintaining scroll functionality */
+.filter-sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Resource Detail responsive styles */
+@media (max-width: 768px) {
+  .resource-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .toc-sidebar {
+    position: relative !important;
+    top: 0 !important;
+    order: -1;
+  }
+}
