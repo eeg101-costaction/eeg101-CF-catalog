@@ -22,8 +22,7 @@ export default function Footer() {
                 fontSize: "var(--font-size-small)",
               }}
             >
-              The National Center for Scientific Research is one of the
-              world&apos;s leading research institutions.
+              EEG101 WorkingGroup3.
             </p>
             <div className="flex gap-2">
               <Image
@@ -79,27 +78,18 @@ export default function Footer() {
               Contact
             </h3>
             <p
-              className="leading-relaxed mb-2"
               style={{
                 color: "var(--text-secondary)",
                 fontSize: "var(--font-size-small)",
               }}
             >
-              CNRS - Rhône Auvergne Delegation
-              <br />
-              2 avenue Albert-Einstein
-              <br />
-              69609 Villeurbanne Cedex
-            </p>
-            <p
-              style={{
-                color: "var(--text-secondary)",
-                fontSize: "var(--font-size-small)",
-              }}
-            >
-              Phone:
-              <br />
-              Email:
+              Email:{" "}
+              <a
+                href="mailto:eegcf@proton.me"
+                style={{ color: "var(--text-primary)" }}
+              >
+                eegcf@proton.me
+              </a>
             </p>
           </div>
 
@@ -158,10 +148,6 @@ export default function Footer() {
             <span>|</span>
             <a href="#" className="hover:text-gray-900 transition">
               Sitemap
-            </a>
-            <span>|</span>
-            <a href="#" className="hover:text-gray-900 transition">
-              Accessibility: compliant
             </a>
           </div>
           <p className="flex-1 text-right">

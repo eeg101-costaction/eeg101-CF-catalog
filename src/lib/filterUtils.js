@@ -53,20 +53,10 @@ export function matchesFilters(resource, activeFilters) {
       : [resource.manifestoPart];
 
     const hasMatchingSection = activeFilters.frameworkSections.some((section) =>
-      parts.includes(section)
+      parts.includes(section),
     );
 
     if (!hasMatchingSection) return false;
-  }
-
-  // Tags filter
-  if (activeFilters.tags?.length > 0) {
-    const resourceTags = resource.tags || [];
-    const hasMatchingTag = activeFilters.tags.some((tag) =>
-      resourceTags.includes(tag)
-    );
-
-    if (!hasMatchingTag) return false;
   }
 
   // Type filter

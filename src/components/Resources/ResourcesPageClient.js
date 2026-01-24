@@ -11,14 +11,13 @@ import { matchesFilters } from "@/lib/filterUtils";
  */
 function filterResources(resources, activeFilters) {
   return resources.filter((resource) =>
-    matchesFilters(resource, activeFilters)
+    matchesFilters(resource, activeFilters),
   );
 }
 
 export function ResourcesPageClient({ initialResources }) {
   const [activeFilters, setActiveFilters] = useState({
     frameworkSections: [],
-    tags: [],
     types: [],
     languages: [],
   });
@@ -38,14 +37,11 @@ export function ResourcesPageClient({ initialResources }) {
         const creatorsMatch = resource.creators
           ?.toLowerCase()
           .includes(lowerQuery);
-        const tagsMatch = resource.tags?.some((tag) =>
-          tag.toLowerCase().includes(lowerQuery)
-        );
         const abstractMatch = resource.abstract
           ?.toLowerCase()
           .includes(lowerQuery);
 
-        return titleMatch || creatorsMatch || tagsMatch || abstractMatch;
+        return titleMatch || creatorsMatch || abstractMatch;
       });
     }
 
@@ -133,7 +129,6 @@ export function ResourcesPageClient({ initialResources }) {
                   onClick={() =>
                     setActiveFilters({
                       frameworkSections: [],
-                      tags: [],
                       types: [],
                       languages: [],
                     })

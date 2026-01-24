@@ -32,7 +32,10 @@ export function SignFrameworkButton({
   className = "",
 }) {
   const handleClick = () => {
-    window.open("https://ubdbra001.github.io/EEG100Manifesto/", "_blank");
+    window.open(
+      "https://cuttingeeg.github.io/EEG101CommunityFramework/",
+      "_blank",
+    );
     if (onClick) onClick();
   };
 

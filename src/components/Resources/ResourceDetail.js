@@ -9,11 +9,11 @@ import { OriginSourceButton, SignPledgeButton } from "../ui/Button";
 // Manifesto part URL mapping
 const MANIFESTO_URLS = {
   "Part 1: Validity & Integrity":
-    "https://ubdbra001.github.io/EEG100Manifesto/#validity-and-scientific-integrity-in-times-of-rapidly-evolving-practices",
+    "https://cuttingeeg.github.io/EEG101CommunityFramework/#validity-and-scientific-integrity-in-times-of-rapidly-evolving-practices",
   "Part 2: Democratization":
-    "https://ubdbra001.github.io/EEG100Manifesto/#democratization-the-importance-of-diversity-and-inclusion-to-support-the-development-of-eeg-science",
+    "https://cuttingeeg.github.io/EEG101CommunityFramework/#democratization-the-importance-of-diversity-and-inclusion-to-support-the-development-of-eeg-science",
   "Part 3: Responsibility":
-    "https://ubdbra001.github.io/EEG100Manifesto/#responsibility-considering-societal-impacts-issues-of-equity-and-sustainability",
+    "https://cuttingeeg.github.io/EEG101CommunityFramework/#responsibility-considering-societal-impacts-issues-of-equity-and-sustainability",
 };
 
 // Extract section name from manifestoPart

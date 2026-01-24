@@ -135,7 +135,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
   // Calculate available filter options from resources
   const filterOptions = React.useMemo(() => {
     const frameworkSections = new Set();
-    const tags = new Map();
     const types = new Map();
     const languages = new Map();
 
@@ -146,13 +145,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
           ? resource.manifestoPart
           : [resource.manifestoPart];
         parts.forEach((part) => frameworkSections.add(part));
-      }
-
-      // Tags
-      if (resource.tags && Array.isArray(resource.tags)) {
-        resource.tags.forEach((tag) => {
-          tags.set(tag, (tags.get(tag) || 0) + 1);
-        });
       }
 
       // Types
@@ -167,9 +159,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
 
     return {
       frameworkSections: Array.from(frameworkSections).sort(),
-      tags: Array.from(tags.entries())
-        .sort((a, b) => b[1] - a[1]) // Sort by count descending
-        .map(([tag, count]) => ({ tag, count })),
       types: Array.from(types.entries())
         .sort((a, b) => b[1] - a[1])
         .map(([type, count]) => ({ type, count })),
@@ -206,7 +195,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
   const clearAllFilters = () => {
     onFilterChange({
       frameworkSections: [],
-      tags: [],
       types: [],
       languages: [],
     });
@@ -214,7 +202,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
 
   const hasActiveFilters =
     activeFilters.frameworkSections?.length > 0 ||
-    activeFilters.tags?.length > 0 ||
     activeFilters.types?.length > 0 ||
     activeFilters.languages?.length > 0;
 
@@ -229,13 +216,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
                 key={`section-${section}`}
                 label={formatFrameworkSectionName(section)}
                 onRemove={() => removeFilter("frameworkSections", section)}
-              />
-            ))}
-            {activeFilters.tags?.map((tag) => (
-              <ActiveFilterChip
-                key={`tag-${tag}`}
-                label={tag}
-                onRemove={() => removeFilter("tags", tag)}
               />
             ))}
             {activeFilters.types?.map((type) => (
@@ -297,29 +277,6 @@ export function FilterSidebar({ resources, activeFilters, onFilterChange }) {
               style={{ fontSize: "var(--font-size-footnote)" }}
             >
               No framework sections available
-            </p>
-          )}
-        </FilterSection>
-
-        {/* Tags */}
-        <FilterSection title="Tag">
-          {filterOptions.tags.length > 0 ? (
-            filterOptions.tags.map(({ tag, count }) => (
-              <FilterCheckbox
-                key={tag}
-                id={`tag-${tag}`}
-                label={tag}
-                count={count}
-                checked={activeFilters.tags?.includes(tag) || false}
-                onChange={() => toggleFilter("tags", tag)}
-              />
-            ))
-          ) : (
-            <p
-              className="text-text-quaternary px-2 py-1"
-              style={{ fontSize: "var(--font-size-footnote)" }}
-            >
-              No tags available
             </p>
           )}
         </FilterSection>

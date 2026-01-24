@@ -2,7 +2,8 @@
 
 :root {
   /* Color styles */
-  --brand-primary: rgb(118, 166, 230);
+  --brand-primary: rgb(120, 173, 241);
+  --brand-secondary: rgb(176, 208, 249);
   --background-primary: rgba(251, 251, 251, 1);
   --background-non-opaque: rgba(255, 255, 255, 0.3);
   --surface-primary: rgba(240, 240, 240, 1);
