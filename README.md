@@ -105,12 +105,12 @@ eeg101-CF-catalog/
 
 ## Deployment
 
-### Vercel (Recommended)
+### Vercel
 
 1. Push your code to GitHub
 2. Import project in [Vercel](https://vercel.com)
 3. Add environment variables in Vercel Dashboard
-4. Deploy!
+4. Deploy
 
 The site will automatically redeploy on every push to the main branch.
 
@@ -134,19 +134,12 @@ npm run lint       # Check code quality
 - **Rendering**: ISR (Incremental Static Regeneration)
 - **Deployment**: Vercel
 
-## Performance
-
-- **Page Load**: < 1s (thanks to ISR)
-- **Cache Duration**: 1 hour (configurable)
-- **API Calls**: Minimized through caching
-- **Core Web Vitals**: Optimized with Next.js Image and ISR
-
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
 ## License
