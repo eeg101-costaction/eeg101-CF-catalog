@@ -12,7 +12,7 @@ export default function HomePage() {
   return (
     <div>
       <Hero
-        title="Resource catalog of the EEG101 Community Framework : Towards a more reliable, open, and responsible science of EEG."
+        title="Resource catalog of the EEG101 Community Framework: Towards a more reliable, open, and responsible science of EEG."
         subtitle="Discover our community framework, a text intended to bring the community together, defining our principles and exploring resources to put them into practice."
       >
         <SignFrameworkButton />
