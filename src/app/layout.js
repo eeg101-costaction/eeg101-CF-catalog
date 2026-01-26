@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "EEG101",
   description: "Towards a more reliable, open, and responsible science of EEG",
+  icons: {
+    icon: "/assets/icons/logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
