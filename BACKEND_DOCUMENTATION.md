@@ -1,7 +1,7 @@
 # EEG-101 Backend Architecture Documentation
 
-**Last Updated:** November 28, 2025  
-**Version:** 1.0  
+**Last Updated:** January 24, 2026  
+**Version:** 1.1  
 **Purpose:** Resource catalog backend for filtering and displaying Zotero library items
 
 ---
@@ -21,12 +21,12 @@
 
 ## Overview
 
-The backend system fetches resources from a Zotero library, categorizes them into 4 families (Bibliographic, Multimedia, Technical & Tools, Web Page), adds color coding, and provides clean, frontend-ready data through a REST API.
+The backend system fetches resources from a Zotero library, categorizes them into 4 families (Bibliographic, Multimedia, Technical & Tools, Web Page), assigns theme colors, and provides clean, frontend-ready data through a REST API.
 
 **Key Features:**
 
 - ✅ Automatic categorization of 31+ Zotero item types into 4 families
-- ✅ Color-coded resources (blue/violet/orange/yellow theme + specific shades)
+- ✅ Color-coded resources (blue/violet/orange/yellow themes)
 - ✅ Manifesto part tracking (Part 1, 2, 3)
 - ✅ Special flags (workshop resources)
 - ✅ APA citation generation for bibliographic items
@@ -63,7 +63,7 @@ The backend system fetches resources from a Zotero library, categorizes them int
 ┌─────────────────────────────────────────────────────────────────────┐
 │                TRANSFORMATION LAYER (transform.js)                  │
 │  • Maps item types to families (book → bibliographic)               │
-│  • Assigns colors (book → blue-700)                                 │
+│  • Assigns theme color identifiers (bibliographic → "blue")         │
 │  • Formats creators (array → "John Doe, Jane Smith")                │
 │  • Generates APA citations                                          │
 │  • Adds manifesto part info                                         │
@@ -119,21 +119,29 @@ scripts/
 
 ### 🔧 **1. `constants.js` - Configuration Center**
 
-**Purpose:** Defines the categorization rules, colors, and display fields.
+**Purpose:** Defines the categorization rules, theme color identifiers, and display fields.
 
 **Key Exports:**
 
 - `FAMILIES` - The 4 family names
-- `FAMILY_COLORS` - Theme colors (blue, violet, orange, yellow)
-- `ITEM_TYPE_COLORS` - Specific shades for each Zotero type
+- `FAMILY_COLORS` - Theme color identifiers (blue, violet, orange, yellow) - these are string keys, NOT actual CSS colors
+- `ITEM_TYPE_COLORS` - Specific color identifiers for each type (LEGACY - currently not used for actual visual display)
 - `ITEM_TYPE_TO_FAMILY` - Mapping: which type belongs to which family
 - `FAMILY_DISPLAY_FIELDS` - Which fields to show for each family
 
 **When to Edit:**
 
 - Adding a new Zotero item type
-- Changing color schemes
+- Changing theme color identifiers (but see note below about actual visual colors)
 - Modifying which fields display for a family
+
+**⚠️ IMPORTANT NOTE ON COLORS:**
+- The `FAMILY_COLORS` and `ITEM_TYPE_COLORS` values here are just string identifiers (e.g., "blue", "blue-700")
+- The **actual CSS colors displayed in the UI** are defined in `src/components/ui/Tags.js` in the `colorGradients` object
+- To change the visual appearance of tags, you must update BOTH files:
+  1. Backend: Update the color identifier in `constants.js` (e.g., change "blue" to "red")
+  2. Frontend: Add the corresponding CSS gradient in `Tags.js` colorGradients (e.g., add `red: "linear-gradient(...)"`)
+  3. Simply changing "blue-500" to "blue-600" in `ITEM_TYPE_COLORS` has **NO visual effect**
 
 ---
 
@@ -185,7 +193,7 @@ prepareForDetail(resource); // Format for detail view
 **Transformation Steps:**
 
 1. Extract item type → Determine family
-2. Assign colors (theme + specific)
+2. Assign theme color identifier (e.g., "blue" for bibliographic) - this is just a string key
 3. Format creators (array → string)
 4. Extract year from date
 5. Add manifesto part info
@@ -194,6 +202,8 @@ prepareForDetail(resource); // Format for detail view
 8. Generate APA citation (bibliographic only)
 9. Truncate abstract for card preview
 10. Add family-specific fields
+
+**Note:** The `color` and `themeColor` fields are just string identifiers (e.g., "blue", "blue-700"). The actual CSS colors used for display are defined in the frontend component `src/components/ui/Tags.js`.
 
 **When to Edit:**
 
@@ -392,25 +402,41 @@ export const ITEM_TYPE_TO_FAMILY = {
 
 ### 🎨 Changing Color Schemes
 
+**⚠️ CRITICAL:** To change the visual appearance of tags, you must update BOTH backend AND frontend files.
+
 **Example:** Change bibliographic theme from blue to green
 
-1. **Edit `constants.js`:**
+**Step 1: Edit backend `constants.js`** (to change the color identifier):
 
 ```javascript
 export const FAMILY_COLORS = {
   [FAMILIES.BIBLIOGRAPHIC]: "green", // ← Changed from "blue"
-  // ... rest unchanged
-};
-
-// Update all blue shades to green shades
-export const ITEM_TYPE_COLORS = {
-  book: "green-700", // ← Changed from "blue-700"
-  journalArticle: "green-500", // ← Changed from "blue-500"
-  // ... etc.
+  [FAMILIES.MULTIMEDIA]: "violet",
+  [FAMILIES.TECHNICAL]: "orange",
+  [FAMILIES.WEB_PAGE]: "yellow",
 };
 ```
 
-2. **Test:** Run `node scripts/test-constants.mjs`
+**Step 2: Edit frontend `src/components/ui/Tags.js`** (to define the actual CSS color):
+
+```javascript
+const colorGradients = {
+  blue: "linear-gradient(to bottom, #76c9f3 0%, #90d4f6 100%)",
+  violet: "linear-gradient(to bottom, #b794f6 0%, #c9aef8 100%)",
+  orange: "linear-gradient(to bottom, #ffb366 0%, #ffc784 100%)",
+  yellow: "linear-gradient(to bottom, #ffd966 0%, #ffe384 100%)",
+  green: "linear-gradient(to bottom, #66ff99 0%, #84ffaa 100%)", // ← ADD THIS
+  grey: "rgba(201, 201, 201, 0.5)",
+};
+```
+
+**Step 3: Test** Run `node scripts/test-constants.mjs`
+
+**⚠️ IMPORTANT NOTES:**
+- The `ITEM_TYPE_COLORS` values (e.g., "blue-500", "blue-700") in `constants.js` are **legacy** and have **NO visual effect**
+- Changing "blue-500" to "blue-600" will **NOT** change anything visually
+- Only the 5 color keys in `colorGradients` (blue, violet, orange, yellow, grey) actually control the visual appearance
+- To add a new color, you MUST add it to both `FAMILY_COLORS` (backend) AND `colorGradients` (frontend)
 
 ---
 
@@ -604,12 +630,21 @@ GET /api/resources?collection=F9DNTXQA&family=bibliographic&limit=10&format=card
 
 ### Color Variants
 
-Each item type gets a specific shade within its family theme:
+**⚠️ NOTE:** The color variant values listed below (e.g., "blue-300", "blue-800") are stored in the backend as metadata but do **NOT** control the actual visual appearance of tags. The real CSS colors are defined in `src/components/ui/Tags.js`.
 
-- **Blue variants:** blue-300 to blue-800
-- **Violet variants:** violet-400 to violet-700
-- **Orange variants:** orange-500 to orange-600
-- **Yellow variants:** yellow-300 to yellow-600
+Each item type gets a specific shade identifier within its family theme:
+
+- **Blue variants:** blue-300 to blue-800 (metadata only)
+- **Violet variants:** violet-400 to violet-700 (metadata only)
+- **Orange variants:** orange-500 to orange-600 (metadata only)
+- **Yellow variants:** yellow-300 to yellow-600 (metadata only)
+
+**Actual visual colors** are controlled by the `colorGradients` object in `src/components/ui/Tags.js`:
+- `blue`: Linear gradient from #76c9f3 to #90d4f6
+- `violet`: Linear gradient from #b794f6 to #c9aef8
+- `orange`: Linear gradient from #ffb366 to #ffc784
+- `yellow`: Linear gradient from #ffd966 to #ffe384
+- `grey`: rgba(201, 201, 201, 0.5)
 
 ---
 

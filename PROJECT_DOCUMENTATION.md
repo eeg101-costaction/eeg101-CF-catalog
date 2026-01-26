@@ -1,27 +1,45 @@
-# EEG101 Resource Catalog - Technical Documentation
+# Documentation
+# PFE - EEG101
 
-**Last Updated**: January 24, 2026  
-**Live Site**: https://eeg101-zeta.vercel.app/  
-**Framework**: Next.js 16 + React 19  
-**Data Source**: Zotero API (no database)
+---
+
+**Floria Léger, Sofia Sojic**  
+**January 29, 2026**
 
 ---
 
 ## Table of Contents
 
 1. [Global Architecture](#1-global-architecture)
+   - 1.1 [Technology Stack](#11-technology-stack)
+   - 1.2 [Data Flow](#12-data-flow)
+   - 1.3 [Resource Families](#13-resource-families)
 2. [API - Backend](#2-api---backend)
-3. [Customization Guide](#3-customization-guide)
+   - 2.1 [Configuration](#21-configuration)
+   - 2.2 [Key Functions](#22-key-functions)
+   - 2.3 [Collection Keys](#23-collection-keys)
+3. [Resources](#3-resources)
+   - [Modifying Family Colors](#modifying-family-colors)
+   - [Moving a Type to Another Family](#moving-a-type-to-another-family)
+   - [Adding a New Zotero Type](#adding-a-new-zotero-type)
+   - [Tag Color Nuances](#tag-color-nuances)
+4. [Customization Guide](#4-customization-guide)
    - a) [Texts](#a-texts)
    - b) [Filters](#b-filters)
    - c) [Links](#c-links)
-4. [Deployment](#4-deployment)
+5. [Hosting](#5-hosting)
+   - 5.1 [Platform: Vercel](#51-platform-vercel)
+   - 5.2 [Vercel Configuration](#52-vercel-configuration)
+   - 5.3 [Automatic Deployments](#53-automatic-deployments)
+   - 5.4 [Deployment Architecture](#54-deployment-architecture)
+   - 5.5 [Recommended Workflow Before Push](#55-recommended-workflow-before-push)
 
 ---
 
 ## 1. Global Architecture
 
 ### Project Structure
+
 ```
 eeg101/
 ├── src/
@@ -31,7 +49,7 @@ eeg101/
 │   │   ├── about/             # About page
 │   │   ├── resources/         # Resources catalog (ISR enabled)
 │   │   │   └── [id]/          # Dynamic resource detail pages
-│   │   └── api/resources/     # API endpoint (optional, not actively used)
+│   │   └── api/resources/     # API endpoint (optional)
 │   ├── components/            # React components
 │   │   ├── Layout/           # Header, Footer
 │   │   ├── Resources/        # ResourceCard, FilterSidebar, ResourceDetail
@@ -43,887 +61,649 @@ eeg101/
 │       │   └── transform.js # Data transformation
 │       └── filterUtils.js   # Filter logic for resources
 ├── public/assets/           # Static assets (icons, images)
-└── .env.local              # Environment variables (Zotero credentials)
+└── .env.local              # Environment variables
 ```
 
-### Technology Stack
+### 1.1 Technology Stack
+
 - **Framework**: Next.js 16 (App Router)
 - **Styling**: Tailwind CSS 4 + CSS Variables
 - **Data Source**: Zotero API (via zotero-api-client)
 - **Rendering**: ISR (Incremental Static Regeneration) for performance
 - **React**: Version 19
+- **Hosting**: Vercel
+
+### 1.2 Data Flow
+
+```
+Zotero API → client.js → transform.js → Page Component → React Components
+     ↑                                        ↓
+     └────────── ISR Cache (1 hour) ─────────┘
+```
+
+**ISR Benefits:**
+- ✅ Pre-generated pages (ultra-fast)
+- ✅ Background revalidation every hour
+- ✅ Fresh data without slowing users
+- ✅ Drastically reduces Zotero API calls
+
+### 1.3 Resource Families
+
+The system organizes resources into **4 families** with theme color identifiers:
+
+1. **Bibliographic** (Blue identifier)
+   - Types: article, book, bookSection, journalArticle, magazineArticle, newspaperArticle, thesis, letter, manuscript, preprint, review, report, encyclopediaArticle, conferencePaper, document
+
+2. **Multimedia** (Violet identifier)
+   - Types: film, presentation, videoRecording, audioRecording, interview, artwork, podcast, radioBroadcast, tvBroadcast
+
+3. **Technical** (Orange identifier)
+   - Types: software, computerProgram, dataset, standard, map, patent, case, bill, statute
+
+4. **Web Page** (Yellow identifier)
+   - Types: webpage, blogPost, forumPost, attachment
+
+**Actual CSS Colors:**
+
+The real colors displayed in the interface are defined in `src/components/ui/Tags.js`:
+- `blue`: Linear gradient from #76c9f3 to #90d4f6
+- `violet`: Linear gradient from #b794f6 to #c9aef8
+- `orange`: Linear gradient from #ffb366 to #ffc784
+- `yellow`: Linear gradient from #ffd966 to #ffe384
+- `grey`: rgba(201, 201, 201, 0.5)
 
 ---
 
 ## 2. API - Backend
 
-### 2.1. Zotero API Integration
-
 The project fetches resources from a Zotero library organized into collections representing the Community Framework sections.
 
-### Configuration
-**File**: `.env.local` (create this file in project root)
+### 2.1 Configuration
+
+**File**: Create `.env.local` at the project root and add:
+
 ```env
-ZOTERO_KEY=your_api_key_here
+ZOTERO_KEY=api_key
 ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=your_library_id
+ZOTERO_LIBRARY_ID=5794905
 ```
 
-### Key Functions
+**How to obtain credentials:**
+1. Go to [zotero.org/settings/keys](https://www.zotero.org/settings/keys)
+2. Create a new API key
+3. Copy the key and your library/group ID
+
+### 2.2 Key Functions
 
 #### `client.js` - API Communication
+
 - **`fetchCollections()`**: Gets all collections (Framework sections: Part 1, 2, 3)
 - **`fetchItemsFromCollection(collectionKey)`**: Gets all resources in a collection
-- **`fetchItem(itemKey)`**: Gets a single resource by ID
+- **`fetchItem(itemKey)`**: Gets a specific resource by ID
 - **`fetchItemCollections(itemKey)`**: Gets collections containing a resource
 
 #### `transform.js` - Data Processing
+
 - **`transformItem(rawItem)`**: Converts raw Zotero data to simplified resource object
 - **`transformItems(rawItems)`**: Batch transformation
 - **`prepareForCard(resource)`**: Prepares minimal data for card display
 - **`prepareForDetail(resource)`**: Prepares full data for detail page
 
 #### `constants.js` - Type System
-Organizes resources into 4 families with color coding:
-- **Bibliographic** (blue): books, articles, reports
-- **Multimedia** (violet): videos, podcasts, presentations
-- **Technical** (orange): software, datasets, code
-- **Web Page** (yellow): blog posts, websites
 
-### Data Flow
-```
-Zotero API → client.js → transform.js → React Components
-```
+Organizes resources into 4 families with color coding (see Global Architecture section).
 
----
+**File**: `src/lib/zotero/constants.js`
 
-## 3. Customization Guide
-
-### a) Texts
-
-**How to modify application texts**
-
-#### Homepage
-**File**: `src/app/page.js`
-
-**Modifiable texts:**
-- **Hero title** (line 14-15): 
-  ```javascript
-  title="EEG101 Community Framework"
-  ```
-- **Hero sous-titre** (ligne 16-17):
-  ```javascript
-  subtitle="A community-driven framework for ethical EEG research"
-  ```
-- **Titres de sections** (lignes 21, 27):
-  ```javascript
-  <h2>Our Mission</h2>
-  <h2>Featured Resources</h2>
-  ```
-- **Cartes d'information** (lignes 33-35):
-  ```javascript
-  <InformationCard 
-    title="Validity & Integrity"
-    description="..."
-  />
-  ```
-
-#### About Page
-**File**: `src/app/about/page.js`
-
-All texts are directly in JSX and easily modifiable.
-
-#### Footer
-**File**: `src/components/Layout/Footer.js`
-
-**Modifiable information:**
-- **Organization info** (lines 11-28):
-  ```javascript
-  <p>EEG101 Community Framework</p>
-  <p>Advancing ethical EEG research</p>
-  ```
-- **Contact details** (lines 61-69):
-  ```javascript
-  <p>Email: eegcf@proton.me</p>
-  <p>Address: ...</p>
-  ```
-- **Social media links** (lines 78-90)
-
-#### Button Labels
-**File**: `src/components/ui/Button.js`
-
-Modifier le texte des paramètres des composants.
-
----
-
-### b) Filters
-
-**Current filter state (after modifications):**
-
-The filtering system now includes **3 categories** ("Tag" filter has been removed):
-
-1. **Framework Section**
-   - Part 1: Validity & Integrity
-   - Part 2: Democratization  
-   - Part 3: Responsibility
-   - Source: Zotero collections
-   - Automatic from collections
-
-2. **Type**
-   - Bibliographic (blue): books, articles, reports
-   - Multimedia (violet): videos, podcasts, presentations
-   - Technical (orange): software, datasets, code
-   - Web Page (yellow): blogs, websites
-   - Source: Zotero item types
-   - Mapped via `lib/zotero/constants.js`
-
-3. **Language**
-   - Extracted from Zotero "language" field
-   - "Unknown" for resources without specified language
-
-**Files involved:**
-- `src/components/Resources/FilterSidebar.js` - Filter interface
-- `src/components/Resources/ResourcesPageClient.js` - Filter state
-- `src/lib/filterUtils.js` - Filtering logic
-
-**How to add a new filter:**
-
-1. Ajouter le calcul dans `FilterSidebar.js` (ligne ~130):
 ```javascript
-const years = new Map();
-resources.forEach((resource) => {
-  if (resource.year) {
-    years.set(resource.year, (years.get(resource.year) || 0) + 1);
-  }
-});
-```
-
-2. Add state in `ResourcesPageClient.js` (line 17):
-```javascript
-const [activeFilters, setActiveFilters] = useState({
-  frameworkSections: [],
-  types: [],
-  languages: [],
-  years: [], // New
-});
-```
-
-3. Add UI in `FilterSidebar.js`:
-```javascript
-<FilterSection title="Year">
-  {filterOptions.years.map(({ year, count }) => (
-    <FilterCheckbox
-      key={year}
-      label={year}
-      count={count}
-      checked={activeFilters.years?.includes(year)}
-      onChange={() => toggleFilter("years", year)}
-    />
-  ))}
-</FilterSection>
-```
-
-4. Add logic in `filterUtils.js`:
-```javascript
-if (activeFilters.years?.length > 0) {
-  if (!activeFilters.years.includes(resource.year)) {
-    return false;
-  }
-}
-```
-
----
-
-### c) Links
-
-**Configurable external links:**
-
-#### 1. Framework/Manifesto Links
-**Fichier**: `src/components/Resources/ResourceDetail.js` (lignes 9-17)
-```javascript
-const MANIFESTO_URLS = {
-  "Part 1: Validity & Integrity": "https://...",
-  "Part 2: Democratization": "https://...",
-  "Part 3: Responsibility": "https://...",
+export const FAMILIES = {
+  BIBLIOGRAPHIC: "bibliographic",
+  MULTIMEDIA: "multimedia",
+  TECHNICAL: "technical",
+  WEB_PAGE: "webpage",
 };
-```
 
-#### 2. Bouton "Sign Framework"
-**Fichier**: `src/components/ui/Button.js` (ligne 48)
-```javascript
-<SignFrameworkButton href="https://forms.gle/xyz" />
-```
-
-#### 3. Social Media
-**File**: `src/components/Layout/Footer.js` (lines 78-90)
-```javascript
-<a href="https://twitter.com/eeg101">Twitter</a>
-<a href="https://github.com/eeg101">GitHub</a>
-<a href="https://linkedin.com/company/eeg101">LinkedIn</a>
-```
-
-#### 4. About Page
-
----
-
-## 3. Customization Guide (Continued)
-
-### A. Modify Framework Sections (Collections)
-
-**Location**: `src/app/resources/page.js` (line 8)
-```javascript
-const COLLECTION_KEYS = ["F9DNTXQA", "ZD2RV8H9", "L72L5WAP"];
-```
-
-**How to add/remove sections:**
-1. Get collection key from Zotero (visible in collection URL or API)
-2. Add/remove key from `COLLECTION_KEYS` array
-3. Update manifesto URLs in `src/components/Resources/ResourceDetail.js` (lines 9-17)
-
-**Example:**
-```javascript
-// Add a new "Part 4: Innovation"
-const COLLECTION_KEYS = ["F9DNTXQA", "ZD2RV8H9", "L72L5WAP", "NEW_KEY_HERE"];
-
-// Also update MANIFESTO_URLS in ResourceDetail.js:
-const MANIFESTO_URLS = {
-  "Part 1: Validity & Integrity": "https://...",
-  "Part 2: Democratization": "https://...",
-  "Part 3: Responsibility": "https://...",
-  "Part 4: Innovation": "https://..." // Add this
-};
-```
-
-### B. Modify Filter Categories
-
-**Location**: `src/components/Resources/FilterSidebar.js`
-
-**Current filters:**
-- Framework Section (automatic from collections)
-- Type (automatic from resource types)
-- Language (from Zotero language field)
-
-**How to add a new filter:**
-
-1. Add filter calculation in `filterOptions` (around line 130):
-```javascript
-// Example: Add "Year" filter
-const years = new Map();
-resources.forEach((resource) => {
-  if (resource.year) {
-    years.set(resource.year, (years.get(resource.year) || 0) + 1);
-  }
-});
-// Add to return object
-years: Array.from(years.entries()).map(([year, count]) => ({ year, count }))
-```
-
-2. Add filter state in `ResourcesPageClient.js` (line 17):
-```javascript
-const [activeFilters, setActiveFilters] = useState({
-  frameworkSections: [],
-  types: [],
-  languages: [],
-  years: [], // Add this
-});
-```
-
-3. Add filter UI in `FilterSidebar.js` (around line 350):
-```javascript
-<FilterSection title="Year">
-  {filterOptions.years.map(({ year, count }) => (
-    <FilterCheckbox
-      key={year}
-      id={`year-${year}`}
-      label={year}
-      count={count}
-      checked={activeFilters.years?.includes(year) || false}
-      onChange={() => toggleFilter("years", year)}
-    />
-  ))}
-</FilterSection>
-```
-
-4. Add filter logic in `filterUtils.js`:
-```javascript
-// In matchesFilters function
-if (activeFilters.years?.length > 0) {
-  if (!activeFilters.years.includes(resource.year)) {
-    return false;
-  }
-}
-```
-
-### C. Modify Resource Type Colors & Families
-
-**Location**: `src/lib/zotero/constants.js`
-
-**Change a resource type's family:**
-```javascript
-// Move "podcast" from multimedia to webpage family
-export const ITEM_TYPE_TO_FAMILY = {
-  // ...
-  podcast: FAMILIES.WEB_PAGE, // Changed from FAMILIES.MULTIMEDIA
-};
-```
-
-**Change theme colors:**
-```javascript
 export const FAMILY_COLORS = {
-  [FAMILIES.BIBLIOGRAPHIC]: "blue",    // Change to "green"
+  [FAMILIES.BIBLIOGRAPHIC]: "blue",
   [FAMILIES.MULTIMEDIA]: "violet",
   [FAMILIES.TECHNICAL]: "orange",
   [FAMILIES.WEB_PAGE]: "yellow",
 };
 ```
 
-### D. Modify Text Content
+### 2.3 Collection Keys
 
-#### Homepage Texts
-**Location**: `src/app/page.js`
-- Hero title/subtitle (lines 14-17)
-- Section titles (lines 21, 27)
-- Information cards (lines 33-35)
+**File**: `src/app/resources/page.js` (line 11)
 
-#### About Page Texts
-**Location**: `src/app/about/page.js`
-- All content is in JSX, easily editable
-
-#### Footer Contact Info
-**Location**: `src/components/Layout/Footer.js`
-- Organization info (lines 11-28)
-- Contact details (lines 61-69)
-- Social links (lines 78-90)
-
-#### Button Labels
-**Location**: `src/components/ui/Button.js`
-- Change default text in component parameters (e.g., line 3)
-
-### E. Modify External Links
-
-**Framework/Manifesto Links:**
-- `src/components/ui/Button.js` (line 48): SignFrameworkButton URL
-- `src/components/Resources/ResourceDetail.js` (lines 9-17): MANIFESTO_URLS
-
-**Social Media Links:**
-- `src/components/Layout/Footer.js` (lines 78-90)
-
-**About Page Links:**
-- `src/app/about/page.js` (lines 17, 31, 38, 92)
-
-### F. Modify Styling
-
-**Color Scheme:**
-**Location**: `src/app/globals.css` (lines 4-18)
-```css
-:root {
-  --brand-primary: rgb(118, 166, 230);     /* Main blue color */
-  --background-primary: rgba(251, 251, 251, 1);
-  /* ... modify colors here */
-}
-```
-
-**Typography Sizes:**
-**Location**: `src/app/globals.css` (lines 20-27)
-```css
-:root {
-  --font-size-h1: clamp(1.8rem, 5vw, 2.7rem);
-  /* ... modify sizes here */
-}
-```
-
-**Tailwind Configuration:**
-Tailwind 4 uses CSS instead of config file. All customization in `globals.css`.
-
-### G. Modify Cache/Revalidation Time
-
-**Location**: `src/app/resources/page.js` (line 11)
 ```javascript
-export const revalidate = 3600; // Seconds (currently 1 hour)
+const COLLECTION_KEYS = ["F9DNTXQA", "ZD2RV8H9", "L72L5WAP"];
 ```
 
-Change to update frequency:
-- `300` = 5 minutes
-- `1800` = 30 minutes
-- `7200` = 2 hours
-- `86400` = 24 hours
+These keys correspond to Zotero collections:
+- `F9DNTXQA`: Part 1: Validity & Integrity
+- `ZD2RV8H9`: Part 2: Democratization
+- `L72L5WAP`: Part 3: Responsibility
+
+**To modify:**
+1. Get the collection key from Zotero (visible in URL or via API)
+2. Add/remove the key from the `COLLECTION_KEYS` array
+3. Update manifesto URLs in `ResourceDetail.js` (lines 9-17)
 
 ---
 
-## 4. Key Features & Implementation
+## 3. Resources
 
-### Search Functionality
-- **Component**: `SearchBar.js`
-- **Logic**: Searches in title, creators, and abstract
-- **Location of logic**: `ResourcesPageClient.js` (lines 30-47)
+### Modifying Family Colors
 
-### Filter System
-- **Component**: `FilterSidebar.js`
-- **Logic**: `filterUtils.js` (matchesFilters function)
-- **State management**: `ResourcesPageClient.js`
+**⚠️ CRITICAL:** To change the visual appearance of tags, you must modify TWO files: the backend AND the frontend.
 
-### Resource Deduplication
-Resources appearing in multiple collections are merged with combined manifestoPart arrays.
-- **Logic**: `resources/page.js` (lines 21-39)
+**Files involved:**
+- Backend: `src/lib/zotero/constants.js` (color identifiers)
+- Frontend: `src/components/ui/Tags.js` (actual CSS colors)
 
-### Performance Optimization
-- **ISR**: Pages pre-generated, revalidated every hour
-- **Caching**: `unstable_cache` wrapper for Zotero data
-- **Image Optimization**: Next.js Image component with priority flags
+#### Step 1: Modify identifier in backend (`src/lib/zotero/constants.js`)
+
+```javascript
+export const FAMILY_COLORS = {
+  [FAMILIES.BIBLIOGRAPHIC]: "green",    // Changed from "blue" to "green"
+  [FAMILIES.MULTIMEDIA]: "violet",
+  [FAMILIES.TECHNICAL]: "orange",
+  [FAMILIES.WEB_PAGE]: "yellow",
+};
+```
+
+#### Step 2: Define actual CSS color in frontend (`src/components/ui/Tags.js`)
+
+```javascript
+const colorGradients = {
+  blue: "linear-gradient(to bottom, #76c9f3 0%, #90d4f6 100%)",
+  violet: "linear-gradient(to bottom, #b794f6 0%, #c9aef8 100%)",
+  orange: "linear-gradient(to bottom, #ffb366 0%, #ffc784 100%)",
+  yellow: "linear-gradient(to bottom, #ffd966 0%, #ffe384 100%)",
+  green: "linear-gradient(to bottom, #66ff99 0%, #84ffaa 100%)", // ADD THIS
+  grey: "rgba(201, 201, 201, 0.5)",
+};
+```
+
+**⚠️ IMPORTANT:**
+- Only the 5 color keys currently in `colorGradients` (blue, violet, orange, yellow, grey) control the actual appearance
+- To add a new color like "red", you MUST add it to `FAMILY_COLORS` (backend) AND `colorGradients` (frontend)
+- The `ITEM_TYPE_COLORS` values in `constants.js` (e.g., "blue-500", "blue-700") are **legacy** and have **NO visual effect**
+
+### Moving a Type to Another Family
+
+**Example:** Move "podcast" from Multimedia to Web Page
+
+```javascript
+export const ITEM_TYPE_TO_FAMILY = {
+  // ... other types ...
+  
+  // BEFORE:
+  // podcast: FAMILIES.MULTIMEDIA,
+  
+  // AFTER:
+  podcast: FAMILIES.WEB_PAGE,
+  
+  // ... other types ...
+};
+```
+
+### Adding a New Zotero Type
+
+If Zotero adds new item types or you have custom types:
+
+```javascript
+export const ITEM_TYPE_TO_FAMILY = {
+  // ... existing types ...
+  
+  // New type
+  newItemType: FAMILIES.BIBLIOGRAPHIC, // Choose the family
+};
+```
+
+**Complete steps:**
+1. Identify the item type in Zotero
+2. Add it to `ITEM_TYPE_TO_FAMILY`
+3. Choose the family (`BIBLIOGRAPHIC`, `MULTIMEDIA`, `TECHNICAL`, or `WEB_PAGE`)
+4. Test with an item of this type in Zotero
+5. Verify display on the site
+
+### Tag Color Nuances
+
+**Global theme colors** (`src/app/globals.css`, lines 4-18)
+
+```css
+:root {
+  --brand-primary: rgb(118, 166, 230);  
+  --background-primary: rgba(251, 251, 251, 1);
+  --text-primary: rgba(0, 0, 0, 0.85);
+  /* ... modify these RGB/RGBA values ... */
+}
+```
+
+**Available variables:**
+- `--brand-primary`: Main brand color
+- `--background-primary`: Background color
+- `--text-primary`: Primary text color
+- `--text-secondary`: Secondary text color
+- `--separator-subtle`: Light separator color
+- etc.
 
 ---
 
-## 4. Hébergement
+## 4. Customization Guide
 
-### 4.1. Plateforme: Vercel
+### a) Texts
 
-**Production URL**: https://eeg101-zeta.vercel.app/
+**How to modify application texts**
 
-### 4.2. Vercel Configuration
+#### Homepage (`src/app/page.js`)
+
+**Modifiable texts:**
+1. **Hero title** (line ~14-15)
+2. **Section titles** (lines ~21, 27)
+3. **Information cards** (lines ~33-35)
+
+#### About Page (`src/app/about/page.js`)
+
+All texts are directly in JSX. Simply modify the content of `<p>`, `<h1>`, `<h2>`, etc. tags.
+
+#### Footer (`src/components/Layout/Footer.js`)
+
+**Modifiable information:**
+1. **Organization info** (lines 11-28)
+2. **Contact details** (lines 75-90)
+3. **Social media links** (lines 95-125)
+4. **Copyright** (line ~145)
+5. **Site credits** (line ~153)
+
+#### Header (`src/components/Layout/Header.js`)
+
+**Navigation menu:** Modify links and labels in the menu.
+
+#### Button Labels (`src/components/ui/Button.js`)
+
+Modify the text passed as props to button components.
+
+### b) Filters
+
+The filtering system currently includes 3 categories:
+
+1. **Framework Section**
+
+**Possible values:**
+- Part 1: Validity & Integrity
+- Part 2: Democratization  
+- Part 3: Responsibility
+
+**Source:** Zotero collections  
+**Automatic:** Based on configured collections  
+**File:** `src/app/resources/page.js` (COLLECTION_KEYS)
+
+2. **Type (Resource type)**
+
+**Available families:**
+- Bibliographic: books, articles, reports
+- Multimedia: videos, podcasts, presentations
+- Technical: software, datasets, code
+- Web Page: blogs, websites
+
+**Source:** Zotero item types  
+**Mapped via:** `src/lib/zotero/constants.js`
+
+3. **Language**
+
+**Source:** Zotero "language" field  
+**Default value:** "Unknown" for resources without specified language
+
+#### Files involved in filters
+
+1. `src/components/Resources/FilterSidebar.js`
+   - User interface for filters
+   - Calculation of available options
+   - Management of active/inactive states
+
+2. `src/components/Resources/ResourcesPageClient.js`
+   - Filter state (`activeFilters`)
+   - Combination of filters + search
+
+3. `src/lib/filterUtils.js`
+   - `matchesFilters()` function: filtering logic
+   - Formatting of type and language names
+
+#### How to add a new filter
+
+**Example:** Add a "Year" filter
+
+**Step 1:** Add calculation in `FilterSidebar.js` (~line 130)
+
+```javascript
+const filterOptions = React.useMemo(() => {
+  const frameworkSections = new Set();
+  const types = new Map();
+  const languages = new Map();
+  const years = new Map(); // ADD
+
+  resources.forEach((resource) => {
+    // ... existing code ...
+  });
+
+  return {
+    // ... existing returns ...
+    years: Array.from(years.entries()).map(([year, count]) => ({ year, count }))
+  };
+}, [resources]);
+```
+
+**Step 2:** Add state in `ResourcesPageClient.js` (line 17)
+
+```javascript
+const [activeFilters, setActiveFilters] = useState({
+  frameworkSections: [],
+  types: [],
+  languages: [],
+  years: [], // ADD
+});
+```
+
+**Step 3:** Add interface in `FilterSidebar.js` (~line 350)
+
+```javascript
+<FilterSection title="Year">
+  {filterOptions.years.length > 0 ? (
+    filterOptions.years.map(({ year, count }) => (
+      <FilterCheckbox
+        key={year}
+        label={year}
+        count={count}
+        checked={activeFilters.years?.includes(year)}
+        onChange={() => toggleFilter("years", year)}
+      />
+    ))
+  ) : (
+    <p>No years available</p>
+  )}
+</FilterSection>
+```
+
+**Step 4:** Add logic in `filterUtils.js`
+
+```javascript
+export function matchesFilters(resource, activeFilters) {
+  // ... existing code (Framework Section, Type, Language) ...
+  
+  // Year filter // ADD
+  if (activeFilters.years?.length > 0) {
+    if (!activeFilters.years.includes(resource.year)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+```
+
+**Step 5:** Update `clearAllFilters` in `FilterSidebar.js`
+
+```javascript
+const clearAllFilters = () => {
+  onFilterChange({
+    frameworkSections: [],
+    types: [],
+    languages: [],
+    years: [], // ADD
+  });
+};
+```
+
+### c) Links
+
+**Configurable external links in the application**
+
+#### 1. Framework/Manifesto Links
+
+**File**: `src/components/Resources/ResourceDetail.js` (lines 9-17)
+
+```javascript
+const MANIFESTO_URLS = {
+  "Part 1: Validity & Integrity": "https://example.com/part1",
+  "Part 2: Democratization": "https://example.com/part2",
+  "Part 3: Responsibility": "https://example.com/part3",
+};
+```
+
+**How to modify:**
+1. Replace URLs with your links to the manifesto
+2. Ensure keys exactly match collection names
+
+#### 2. "Sign Framework" Button
+
+**File**: `src/components/ui/Button.js` (line ~48)
+
+```javascript
+<SignFrameworkButton href="https://forms.gle/your-form" />
+```
+
+**How to modify:** Search for `SignFrameworkButton` and modify the `href` attribute.
+
+#### 3. Social Media
+
+**File**: `src/components/Layout/Footer.js` (lines 95-125)
+
+```javascript
+{/* Twitter */}
+<a
+  href="https://twitter.com/cnrs"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  {/* Twitter Icon */}
+</a>
+
+{/* LinkedIn */}
+<a
+  href="https://www.linkedin.com/company/cnrs"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  {/* LinkedIn Icon */}
+</a>
+```
+
+**How to modify:**
+1. Search for `href="https://twitter.com`
+2. Replace with your social media URLs
+3. Keep `target="_blank"` and `rel="noopener noreferrer"` for security
+
+#### 4. About Page Links
+
+**File**: `src/app/about/page.js`
+
+Search for all `<a href="...">` tags and modify URLs as needed.
+
+#### 5. Contact Email
+
+**File**: `src/components/Layout/Footer.js` (line ~88)
+
+```javascript
+<a href="mailto:eegcf@proton.me">eegcf@proton.me</a>
+```
+
+**How to modify:** Replace `eegcf@proton.me` with another email address (in both `href` AND visible text).
+
+#### 6. Legal Links (footer)
+
+**File**: `src/components/Layout/Footer.js` (lines ~147-151)
+
+```javascript
+<a href="#" className="...">Legal Notice</a>
+<a href="#" className="...">Privacy Policy</a>
+<a href="#" className="...">Sitemap</a>
+```
+
+**How to modify:**
+1. Replace `#` with the URL of your legal pages
+2. Or create dedicated Next.js pages (e.g.: `/legal`, `/privacy`)
+
+---
+
+## 5. Hosting
+
+### 5.1 Platform: Vercel
+
+**Current production URL**: https://eeg101-zeta.vercel.app/
+
+#### Why Vercel?
+
+Vercel was the best solution for this project:
+- ✅ Optimized for Next.js (created by Next.js developers)
+- ✅ Automatic deployment from GitHub
+- ✅ Global CDN for optimal performance worldwide
+- ✅ Native ISR (Incremental Static Regeneration) support
+- ✅ Automatic and free SSL/HTTPS certificate
+- ✅ Free for personal and open-source projects
+- ✅ Automatic preview for pull requests
+- ✅ Easy rollback with one click
+
+### 5.2 Vercel Configuration
 
 #### Prerequisites
-- Vercel account connected to your GitHub repository
-- Zotero API credentials
 
-#### Deployment Steps
+1. Vercel account (free)
+2. GitHub repository of the project
+3. Zotero API keys
 
-**1. GitHub → Vercel Connection**
+#### Initial Deployment Steps
+
+**Step 1: Push code to GitHub**
+
 ```bash
-# Push your code to GitHub
+# In your terminal, at the project root
 git add .
 git commit -m "Ready for deployment"
 git push origin main
 ```
 
-**2. Import to Vercel**
-- Go to [vercel.com](https://vercel.com)
-- Click "New Project"
-- Import your GitHub repository
-- Framework Preset: Next.js (auto-detected)
+**Step 2: Connect GitHub to Vercel**
 
-**3. Environment Variables**
+1. Go to [vercel.com](https://vercel.com)
+2. Log in with your GitHub account
+3. Click on "New Project"
+4. Authorize Vercel to access your GitHub repositories
 
-In Vercel Dashboard → Settings → Environment Variables:
+**Step 3: Import the project**
 
-```env
-ZOTERO_KEY=your_api_key
-ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=5794905
-```
+1. In the list, select your repository: `eeg101-costaction/eeg101-CF-catalog`
+2. Vercel automatically detects it's a Next.js project
+3. **Framework Preset**: Next.js (pre-filled normally)
+4. **Root Directory**: leave default (./)
+5. Add environment variables (see next step)
+6. Click "Deploy"
 
-⚠️ **Important**: These variables must be set for **all environments** (Production, Preview, Development)
+**Step 4: Configure environment variables**
 
-**4. Deploy**
-- Click "Deploy"
-- First deployment: ~2-3 minutes
-- Subsequent deployments: ~1-2 minutes
-- Vercel auto-deploys on every push to `main`
+Before clicking "Deploy", add environment variables.
 
-### 4.3. Deployment Architecture
+In the "Environment Variables" section in the settings page, for each variable:
+1. Enter the name (e.g., `ZOTERO_KEY`)
+2. Enter the value
+3. Select environments: Production, Preview, Development (all)
+4. Click "Add"
 
-```
-GitHub (main branch)
-       ↓
-   [Push detected]
-       ↓
- Vercel Build Process
-       ↓
-   [Build Next.js]
-       ↓
-   [Fetch Zotero]
-       ↓
-  [Generate ISR pages]
-       ↓
-   Deploy to CDN
-       ↓
-https://eeg101-zeta.vercel.app/
-```
+**Step 5: Deploy**
 
-### 4.4. Production Data Flow
+1. Click on "Deploy"
+2. Vercel will:
+   - Install dependencies (`npm install`)
+   - Build the project (`npm run build`)
+   - Deploy on CDN
 
-```
-User → Vercel CDN → ISR Pages (1h cache)
-                        ↓
-                   Zotero API
-                   (120 req/min)
-```
+**Step 6: Verify deployment**
 
-**ISR Advantages:**
-- ✅ Pre-generated pages (ultra-fast)
-- ✅ Background revalidation (1h)
-- ✅ Fresh data without slowing users  
-- ✅ Reduces Zotero API calls
+1. Once finished, Vercel displays the production URL
+2. Click on "Visit" to see your site online
+3. Verify that resources load correctly
 
-### 4.5. Environment Variables
+### 5.3 Automatic Deployments
 
-#### Production (Vercel Dashboard)
-```env
-ZOTERO_KEY=<your_production_key>
-ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=5794905
-```
+Once configured, Vercel automatically deploys:
 
-#### Local Development (.env.local)
-```env
-ZOTERO_KEY=<your_dev_key>
-ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=5794905
-```
-
-**Note**: The `.env.local` file is never committed (in `.gitignore`)
-
-### 4.6. Monitoring and Logs
-
-#### Access Logs
-1. Vercel Dashboard
-2. "Deployments" tab
-3. Click on deployment
-4. "View Function Logs"
-
-#### Available Metrics
-- Build time
-- Deployment errors
-- API requests
-- Performance (Core Web Vitals)
-- Bandwidth used
-
-### 4.7. Custom Domain (Optional)
-
-**Add your own domain:**
-
-1. Vercel Dashboard → Settings → Domains
-2. Add your domain (e.g., `catalog.eeg101.org`)
-3. Configure DNS at your registrar:
-   ```
-   Type: CNAME
-   Name: catalog (or @)
-   Value: cname.vercel-dns.com
-   ```
-4. Vercel automatically configures SSL
-
-### 4.8. Troubleshooting
-
-#### Resources Not Loading
-**Symptoms**: Empty catalog, loading errors
-
-**Solutions**:
-1. Vérifier les variables d'environnement dans Vercel
-2. Consulter les logs: Dashboard → Deployments → [Latest] → Function Logs
-3. Tester l'API Zotero directement:
+1. **Push on `main`**: Production deployment
    ```bash
-   curl https://api.zotero.org/groups/5794905/collections
-   ```
-4. Vérifier les permissions de la clé API Zotero
-
-#### Build Fails
-**Symptoms**: Deployment fails
-
-**Solutions**:
-1. Check build logs in Vercel
-2. Reproduce locally: `npm run build`
-3. Verify `package.json` (all dependencies present)
-4. Node.js version: Minimum 18.17+ (Next.js 16)
-
-#### Stale Data
-**Symptoms**: New Zotero resources don't appear
-
-**Solutions**:
-1. Wait for revalidation (max 1 hour)
-2. Manually redeploy: Vercel Dashboard → Deployments → Redeploy
-3. Adjust `revalidate` in `src/app/resources/page.js`:
-   ```javascript
-   export const revalidate = 1800; // 30 minutes instead of 1h
-   ```
-
-#### API Rate Limit Exceeded
-**Symptoms**: 429 errors (Too Many Requests)
-
-**Solutions**:
-1. Verify ISR is active (1h cache)
-2. Increase `revalidate` to reduce API calls
-3. Check that no code makes direct calls in a loop
-
-### 4.9. Production Performance
-
-**Expected Metrics:**
-- **TTFB** (Time to First Byte): < 200ms
-- **FCP** (First Contentful Paint): < 1s
-- **LCP** (Largest Contentful Paint): < 2.5s
-- **Build time**: 2-3 minutes
-- **Page load**: < 1s (thanks to ISR)
-
-**Active Optimizations:**
-- ISR with 1h cache
-- Next.js Image optimization
-- Automatic compression (Vercel)
-- Global CDN (Vercel Edge Network)
-- Tree shaking (Tailwind CSS)
-
-### 4.10. Backup and Rollback
-
-**Roll back to previous version:**
-
-1. Vercel Dashboard → Deployments
-2. Find stable deployment
-3. Click "⋯" → "Promote to Production"
-
-Or via Git:
-```bash
-git revert HEAD
-git push origin main
-```
-
-**Vercel keeps history** of all deployments indefinitely.
-
----
-
-## 5. Development Commands
-
-```bash
-npm run dev        # Start development server (localhost:3000)
-npm run build      # Build for production
-npm run start      # Run production build
-npm run lint       # Check code quality
-```
-
----
-
-## 6. Common Modifications - Quick Reference
-
-| What to Change | File Location | Line(s) |
-|----------------|---------------|---------|
-| Framework collections | `resources/page.js` | 8 |
-| Homepage hero text | `app/page.js` | 14-17 |
-| Footer contact info | `Layout/Footer.js` | 61-69 |
-| Color scheme | `globals.css` | 4-18 |
-| Add new filter | `FilterSidebar.js` + `filterUtils.js` | ~130, ~45 |
-| Manifesto links | `ResourceDetail.js` | 9-17 |
-| Cache duration | `resources/page.js` | 11 |
-| Zotero credentials | `.env.local` | entire file |
-
----
-
-## 7. Deployment Guide
-
-### Vercel Deployment (Recommended)
-
-This project is deployed on Vercel at: https://eeg101-zeta.vercel.app/
-
-**Prerequisites:**
-- Vercel account connected to your GitHub repository
-- Zotero API credentials ready
-
-**Deployment Steps:**
-
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "Ready for deployment"
    git push origin main
    ```
 
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Framework preset: Next.js (auto-detected)
+2. **Pull Request**: Preview deployment
+   - Each PR gets a unique preview URL
+   - Allows testing before merging
+   - URL format: `eeg101-catalog-git-branch-name.vercel.app`
 
-3. **Configure Environment Variables**
-   In Vercel Dashboard → Settings → Environment Variables, add:
-   ```
-   ZOTERO_KEY=your_api_key_here
-   ZOTERO_LIBRARY_TYPE=group
-   ZOTERO_LIBRARY_ID=5794905
-   ```
+3. **Commits on branches**: Preview deployment
+   - Useful for testing features in development
 
-4. **Deploy**
-   - Vercel will automatically deploy on every push to main branch
-   - First deployment takes ~2-3 minutes
-   - Subsequent deployments are faster (~1-2 minutes)
-
-**Important Notes:**
-- The project uses **Zotero API directly** (no database required)
-- ISR (Incremental Static Regeneration) ensures fast page loads
-- Pages revalidate every hour (configurable in `resources/page.js`)
-- No Supabase or other database needed
-
-### Environment Variables
-
-**Production (.env on Vercel):**
-```env
-ZOTERO_KEY=your_production_key
-ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=5794905
-```
-
-**Local Development (.env.local):**
-Create a `.env.local` file in the project root:
-```env
-ZOTERO_KEY=your_development_key
-ZOTERO_LIBRARY_TYPE=group
-ZOTERO_LIBRARY_ID=5794905
-```
-
-### Troubleshooting Deployment
-
-**Resources not loading on production:**
-- Verify environment variables are set correctly in Vercel
-- Check Vercel logs: Dashboard → Deployments → [Latest] → View Function Logs
-- Ensure Zotero API key has read permissions
-
-**Build failing:**
-- Check build logs in Vercel dashboard
-- Ensure all dependencies are in `package.json`
-- Verify Node.js version compatibility (Next.js 16 requires Node 18.17+)
-
-**Stale data:**
-- Adjust `revalidate` time in `src/app/resources/page.js`
-- Trigger manual revalidation: Vercel Dashboard → Deployments → Redeploy
-
----
-
-## 7. Troubleshooting
-
-**Resources not loading:**
-- Check `.env.local` has correct Zotero credentials
-- Verify collection keys in `COLLECTION_KEYS`
-- Check Zotero API is accessible
-- Review browser console for errors
-
-**Filters not working:**
-- Verify filter logic in `filterUtils.js`
-- Check state updates in `ResourcesPageClient.js`
-- Ensure activeFilters object has correct structure
-
-**Styling issues:**
-- Check Tailwind classes are valid
-- Verify CSS variables in `globals.css`
-- Clear `.next` folder and rebuild: `rm -rf .next && npm run build`
-
-**Cache not updating:**
-- Reduce `revalidate` time in `resources/page.js`
-- During development, delete `.next` folder
-- Use `npm run build` to test production cache behavior
-
-**API Rate Limiting:**
-- Zotero API has rate limits (120 requests/minute)
-- ISR reduces API calls significantly
-- Adjust cache duration if needed
-
----
-
-## 8. File Dependencies Map
+### 5.4 Deployment Architecture
 
 ```
-resources/page.js
-  └─ uses: client.js, transform.js
-       └─ uses: constants.js
+┌─────────────────────────────────────────────┐
+│          GitHub Repository                  │
+│   eeg101-costaction/eeg101-CF-catalog      │
+└────────────────┬────────────────────────────┘
+                 │
+                 │ Push detected
+                 ↓
+┌─────────────────────────────────────────────┐
+│         Vercel Build Process                │
+│                                             │
+│  1. git clone repository                    │
+│  2. npm install                             │
+│  3. npm run build                           │
+│  4. Fetch Zotero API                        │
+│  5. Generate ISR pages                      │
+│  6. Optimize images                         │
+└────────────────┬────────────────────────────┘
+                 │
+                 │ Deployment
+                 ↓
+┌─────────────────────────────────────────────┐
+│         Vercel Edge Network (CDN)           │
+│      (Servers worldwide)                    │
+└────────────────┬────────────────────────────┘
+                 │
+                 │ HTTPS
+                 ↓
+┌─────────────────────────────────────────────┐
+│              User                           │
+│    https://eeg101-zeta.vercel.app/         │
+└─────────────────────────────────────────────┘
+```
 
-ResourcesPageClient.js
-  └─ uses: filterUtils.js, FilterSidebar.js, ResourceCard.js, SearchBar.js
+### 5.5 Recommended Workflow Before Push
 
-FilterSidebar.js
-  └─ uses: filterUtils.js
+```bash
+# 1. Test in dev
+npm run dev
+# Visually check changes
 
-ResourceDetail.js
-  └─ uses: Button.js, Tags.js
+# 2. Test the build
+npm run build
+# Ensure there are no errors
+
+# 3. Lint
+npm run lint
+# Fix warnings
+
+# 4. Commit and push
+git add .
+git commit -m "Description of changes"
+git push origin main
+# Vercel deploys automatically
 ```
 
 ---
 
-## Notes
-- All backend functions in `lib/` are actively used by the frontend
-- The `api/resources/route.js` endpoint exists but is not currently used (ISR is preferred) => still useful for testing Zotero integration independently
-- Resource deduplication logic is implemented in both API route and page component
-- Color system uses both Tailwind and CSS variables for flexibility
-- **No database required** - fetches directly from Zotero API
-- **No Supabase integration** - pure Zotero API implementation
-
----
-
-## 9. System Architecture
-
-### Data Flow
-```
-Zotero API → client.js → transform.js → Page Component → React Components
-     ↑                                        ↓
-     └────────── ISR Cache (1 hour) ───────┘
-```
-
-### Key Components
-1. **Zotero API Client** (`lib/zotero/client.js`)
-   - Handles authentication with Zotero
-   - Fetches collections and items
-   - Manages API requests
-
-2. **Data Transformation** (`lib/zotero/transform.js`)
-   - Converts raw Zotero data to frontend-ready format
-   - Categorizes resources into families
-   - Applies color coding
-   - Formats metadata
-
-3. **Type System** (`lib/zotero/constants.js`)
-   - Maps 31+ Zotero item types to 4 families
-   - Defines color scheme
-   - Maintains type consistency
-
-4. **Filter System** (`lib/filterUtils.js` + `FilterSidebar.js`)
-   - Framework Section filtering
-   - Type filtering
-   - Language filtering
-   - Search functionality
-
-5. **ISR (Incremental Static Regeneration)**
-   - Pages are pre-generated at build time
-   - Background revalidation every hour
-   - Instant page loads for users
-   - Reduces API calls to Zotero
-
-### Performance Optimizations
-- **Caching**: `unstable_cache` wrapper for Zotero data
-- **Parallel Fetching**: All collections fetched simultaneously
-- **Deduplication**: Resources in multiple collections are merged
-- **Lazy Loading**: Only essential data on initial load
-- **Image Optimization**: Next.js Image component with priority flags
-
----
-
-## 10. Maintenance & Updates
-
-### Regular Maintenance Tasks
-1. **Update Dependencies** (monthly)
-   ```bash
-   npm outdated
-   npm update
-   npm audit fix
-   ```
-
-2. **Monitor Zotero Library**
-   - Ensure collection structure remains consistent
-   - Verify new item types are mapped in `constants.js`
-   - Check for broken links or missing metadata
-
-3. **Performance Monitoring**
-   - Review Vercel analytics
-   - Check Core Web Vitals
-   - Monitor API rate limits
-
-### Adding New Resource Types
-If Zotero adds new item types or you need custom categorization:
-
-1. **Update `constants.js`**:
-   ```javascript
-   export const ITEM_TYPE_TO_FAMILY = {
-     // ... existing mappings
-     newItemType: FAMILIES.BIBLIOGRAPHIC, // Choose appropriate family
-   };
-   ```
-
-2. **Test the integration**:
-   ```bash
-   npm run dev
-   # Add a test item in Zotero with the new type
-   # Verify it appears correctly on the site
-   ```
+**Document created - January 2026**  
+**Project**: EEG101 Community Framework Catalog  
+**Authors**: Floria Léger, Sofia Sojic
 
 ### Version Control Best Practices
 ```bash
