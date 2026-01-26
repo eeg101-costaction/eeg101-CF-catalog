@@ -21,48 +21,44 @@ export default function Header() {
   ];
 
   return (
-    <header
-      className="fixed w-full top-0 z-50 flex items-center justify-center h-20"
-      style={{ background: "var(--surface-primary)" }}
-    >
-      <Image
-        src="/assets/icons/logo-v1.png"
-        alt="logo icon"
-        width={220}
-        height={80}
-        style={{
-          objectFit: "contain",
-          position: "absolute",
-          left: 10,
-          top: 0,
-        }}
-        priority
-      />
+    <header className="site-header">
+      <div className="container">
+        <div className="header-wrapper">
+          <div className="site-branding">
+            <a href="/" className="logo-link">
+              <Image
+                src="/assets/icons/logo.png"
+                alt="logo icon"
+                width={300}
+                height={84}
+                className="site-logo"
+                priority
+              />
+            </a>
+            <a href="/" className="site-title">
+              EEG101 Community Framework Resources Catalog
+            </a>
+          </div>
 
-      <nav className="flex items-center gap-4">
-        {links.map((link) => {
-          const active = isActive(link.href);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`inline-block px-6 py-2 rounded-2xl no-underline translate-y-0 hover:translate-y-[-4px] hover:font-bold ${
-                active ? "font-bold" : "hover:text-[var(--text-primary)]"
-              }`}
-              style={{
-                fontSize: "var(--font-size-h3)",
-                color: active ? "var(--text-primary)" : "var(--text-secondary)",
-                backgroundColor: active
-                  ? "var(--background-non-opaque)"
-                  : "transparent",
-                transition: "all var(--transition-slow) ease-in-out",
-              }}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
-      </nav>
+          <nav className="site-navigation">
+            <ul className="nav-list">
+              {links.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={active ? "active" : ""}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
+      </div>
     </header>
   );
 }
