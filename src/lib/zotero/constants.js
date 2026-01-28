@@ -1,4 +1,12 @@
 /**
+ * ZOTERO GROUP CONFIGURATION
+ *
+ * Group ID for the EEG101 Community Framework Zotero library
+ * Used for constructing links to items in the online Zotero library
+ */
+export const ZOTERO_GROUP_ID = "5794905";
+
+/**
  * RESOURCE FAMILIES
  *
  * We organize Zotero items into 4 families based on their type:

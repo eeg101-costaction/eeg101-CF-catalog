@@ -4,7 +4,8 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Tags from "../ui/Tags";
-import { OriginSourceButton, SignPledgeButton } from "../ui/Button";
+import { OriginSourceButton, SignPledgeButton, ZoteroLinkButton } from "../ui/Button";
+import { ZOTERO_GROUP_ID } from "@/lib/zotero/constants";
 
 // Manifesto part URL mapping
 const MANIFESTO_URLS = {
@@ -79,6 +80,11 @@ export default function ResourceDetail({ resource }) {
   const originUrl = resource.doi
     ? `https://doi.org/${resource.doi}`
     : resource.url;
+
+  // Build Zotero library URL if we have the item ID
+  const zoteroUrl = resource.id
+    ? `https://www.zotero.org/groups/${ZOTERO_GROUP_ID}/eegcommunityframework/items/${resource.id}/library`
+    : null;
 
   // Prepare manifesto parts for buttons
   const manifestoParts = Array.isArray(resource.manifestoPart)
@@ -241,6 +247,17 @@ export default function ResourceDetail({ resource }) {
             </div>
           )}
 
+          {/* Zotero Link Button */}
+          {zoteroUrl && (
+            <div id="zotero-link">
+              <ZoteroLinkButton
+                onClick={() => window.open(zoteroUrl, "_blank")}
+              >
+                View in Zotero
+              </ZoteroLinkButton>
+            </div>
+          )}
+
           {/* Sign Pledge Buttons */}
           {manifestoParts.map((part, idx) => {
             const pledgeUrl = getPledgeUrl(part);
@@ -322,6 +339,28 @@ export default function ResourceDetail({ resource }) {
                   }
                 >
                   Origin Sources
+                </button>
+              </li>
+            )}
+
+            {/* Zotero Link */}
+            {zoteroUrl && (
+              <li>
+                <button
+                  onClick={() => scrollToSection("zotero-link")}
+                  className="w-full text-left py-2 bg-transparent border-0 cursor-pointer font-normal transition-colors duration-[var(--transition-fast)]"
+                  style={{
+                    fontSize: "var(--font-size-small)",
+                    color: "var(--text-primary)",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.color = "var(--text-link)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.color = "var(--text-primary)")
+                  }
+                >
+                  View in Zotero
                 </button>
               </li>
             )}

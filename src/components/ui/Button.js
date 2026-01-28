@@ -91,3 +91,35 @@ export function OriginSourceButton({
     </button>
   );
 }
+
+export function ZoteroLinkButton({
+  children = "View in Zotero",
+  onClick,
+  className = "",
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-center gap-2 w-full max-w-[600px] px-8 py-3 rounded-3xl font-semibold border-0 cursor-pointer transition-colors duration-200 ${className}`}
+      style={{
+        background: "var(--surface-secondary)",
+        color: "var(--text-primary)",
+      }}
+      onMouseEnter={(e) =>
+        (e.target.style.backgroundColor = "var(--surface-tertiary)")
+      }
+      onMouseLeave={(e) =>
+        (e.target.style.backgroundColor = "var(--surface-secondary)")
+      }
+    >
+      {children}
+      <Image
+        src="/assets/icons/arrow.svg"
+        alt="Arrow icon"
+        width={16}
+        height={16}
+        className="object-contain"
+      />
+    </button>
+  );
+}
