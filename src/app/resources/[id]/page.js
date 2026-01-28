@@ -14,10 +14,14 @@ export default async function ResourceDetailPage({ params }) {
 
     // Get all collection names that this item belongs to
     const collectionNames = collections.map((c) => c.name);
+    
+    // Get the first collection key (primary collection for the item)
+    const firstCollectionKey = collections.length > 0 ? collections[0].key : undefined;
 
     // Transform with collection info
     const transformedItem = transformItem(rawItem, {
       collectionName: collectionNames.length > 0 ? collectionNames : undefined,
+      collectionKey: firstCollectionKey,
     });
 
     resource = prepareForDetail(transformedItem);
