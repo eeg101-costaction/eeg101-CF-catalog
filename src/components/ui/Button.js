@@ -114,8 +114,8 @@ export function ZoteroLinkButton({
     >
       {children}
       <Image
-        src="/assets/icons/arrow.svg"
-        alt="Arrow icon"
+        src="/assets/icons/zotero.png"
+        alt="Zotero icon"
         width={16}
         height={16}
         className="object-contain"
