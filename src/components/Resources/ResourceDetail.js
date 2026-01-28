@@ -83,7 +83,9 @@ export default function ResourceDetail({ resource }) {
 
   // Build Zotero library URL if we have the item ID
   const zoteroUrl = resource.id
-    ? `https://www.zotero.org/groups/${ZOTERO_GROUP_ID}/eegcommunityframework/items/${resource.id}/library`
+    ? resource.collectionKey
+      ? `https://www.zotero.org/groups/${ZOTERO_GROUP_ID}/eegcommunityframework/collections/${resource.collectionKey}/items/${resource.id}/collection`
+      : `https://www.zotero.org/groups/${ZOTERO_GROUP_ID}/eegcommunityframework/items/${resource.id}/library`
     : null;
 
   // Prepare manifesto parts for buttons
