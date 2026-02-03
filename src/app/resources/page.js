@@ -10,9 +10,8 @@ import { cache } from "react";
 
 const COLLECTION_KEYS = ["F9DNTXQA", "ZD2RV8H9", "L72L5WAP"];
 
-// Enable static generation with polling
-// Cache for 1 hour, but can be invalidated via polling cron job
-export const revalidate = 3600; // Fallback revalidation every hour
+// Enable static generation for instant page loads
+export const revalidate = 3600; // Revalidate cache every hour
 
 // Add metadata for better SEO
 export const metadata = {
@@ -118,8 +117,8 @@ const getCachedResources = cache(
     },
     ["resources-all"], // Cache key
     {
-      revalidate: 3600, // Cache for 1 hour (fallback)
-      tags: ["zotero-resources"], // Used by polling cron to invalidate cache
+      revalidate: 3600, // Cache for 1 hour
+      tags: ["resources"],
     }
   )
 );
