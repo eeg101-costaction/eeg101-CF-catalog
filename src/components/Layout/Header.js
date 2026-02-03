@@ -25,7 +25,7 @@ export default function Header() {
       <div className="container">
         <div className="header-wrapper">
           <div className="site-branding">
-            <Link href="/" className="logo-link">
+            <a href="/" className="logo-link">
               <Image
                 src="/assets/icons/logo.png"
                 alt="logo icon"
@@ -34,10 +34,10 @@ export default function Header() {
                 className="site-logo"
                 priority
               />
-            </Link>
-            <Link href="/" className="site-title">
+            </a>
+            <a href="/" className="site-title">
               EEG101 Community Framework Resources Catalog
-            </Link>
+            </a>
           </div>
 
           <nav className="site-navigation">
