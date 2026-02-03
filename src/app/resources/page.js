@@ -61,6 +61,7 @@ function prepareForCard(resource) {
     abstractPreview: resource.abstractPreview || "",
     tags: resource.tags || [],
     language: resource.language || undefined,
+    dateModified: resource.dateModified || null,
   };
 }
 

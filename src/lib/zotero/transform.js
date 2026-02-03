@@ -316,6 +316,11 @@ export function transformItem(rawItem, options = {}) {
     resource.url = data.url;
   }
 
+  // Add dateModified (when the item was last modified in Zotero)
+  if (data.dateModified) {
+    resource.dateModified = data.dateModified;
+  }
+
   // Add DOI if available
   if (data.DOI) {
     resource.doi = data.DOI;
