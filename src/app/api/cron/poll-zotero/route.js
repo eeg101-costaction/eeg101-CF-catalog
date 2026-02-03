@@ -88,7 +88,7 @@ export async function GET(request) {
     if (changedCollections.length > 0) {
       console.log("🔄 Invalidating cache for zotero-resources");
       try {
-        revalidateTag("zotero-resources", "max");
+        revalidateTag("zotero-resources");
       } catch (error) {
         console.warn("Could not revalidate cache:", error.message);
         // Don't fail if cache revalidation doesn't work
