@@ -36,6 +36,10 @@ export function ResourcesPageClient({ initialResources }) {
       if (data.success) {
         // Refresh the page to get new data
         router.refresh();
+        // Reload the page once refresh is complete
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         console.error("Revalidation failed:", data.error);
       }
@@ -66,6 +70,13 @@ export function ResourcesPageClient({ initialResources }) {
         return titleMatch || creatorsMatch || abstractMatch;
       });
     }
+
+    // Sort by modification date (most recent first)
+    results.sort((a, b) => {
+      const dateA = new Date(a.dateModified || 0);
+      const dateB = new Date(b.dateModified || 0);
+      return dateB - dateA; // Descending order (most recent first)
+    });
 
     return results;
   }, [initialResources, activeFilters, searchQuery]);
