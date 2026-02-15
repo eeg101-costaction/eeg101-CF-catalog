@@ -238,6 +238,18 @@ export default function ResourceDetail({ resource }) {
 
         {/* Action Buttons */}
         <section id="actions" className="flex flex-col gap-6 flex-wrap">
+          {/* Modified date */}
+          {resource.dateModified && (
+            <p
+              style={{
+                fontSize: "var(--font-size-caption)",
+                color: "var(--text-tertiary)",
+              }}
+            >
+              Last modified in Zotero: {new Date(resource.dateModified).toLocaleDateString()}
+            </p>
+          )}
+
           {/* Origin Source Button */}
           {originUrl && (
             <div id="origin-sources">
