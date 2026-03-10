@@ -6,7 +6,7 @@ import {
 } from "@/lib/zotero/client";
 import { transformItems } from "@/lib/zotero/transform";
 import { unstable_cache } from "next/cache";
-import { cache } from "react";
+import { cache, Suspense } from "react";
 
 const COLLECTION_KEYS = ["F9DNTXQA", "ZD2RV8H9", "L72L5WAP"];
 
@@ -134,7 +134,9 @@ export default async function ResourcesPage() {
         title="Resource catalog of the EEG101 Community Framework"
         subtitle="Search, filter, and use resources that advance EEG science in an ethical and concrete way just below."
       />
-      <ResourcesPageClient initialResources={resources} />
+      <Suspense fallback={<div>Loading resources...</div>}>
+        <ResourcesPageClient initialResources={resources} />
+      </Suspense>
     </div>
   );
 }
