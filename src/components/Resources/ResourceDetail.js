@@ -304,6 +304,38 @@ export default function ResourceDetail({ resource, relatedResources = [] }) {
           </p>
         </section>
 
+        {/* YouTube Video */}
+        {resource.youtubeVideoId && (
+          <section id="video" className="mb-12">
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                paddingBottom: "56.25%", // 16:9 aspect ratio
+                height: 0,
+                overflow: "hidden",
+                borderRadius: "var(--border-radius, 8px)",
+              }}
+            >
+              <iframe
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  borderRadius: "var(--border-radius, 8px)",
+                }}
+                src={`https://www.youtube-nocookie.com/embed/${resource.youtubeVideoId}`}
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </section>
+        )}
+
         {/* Action Buttons */}
         <section id="actions" className="flex flex-col gap-6 flex-wrap">
 
@@ -469,6 +501,28 @@ export default function ResourceDetail({ resource, relatedResources = [] }) {
                 Abstract
               </button>
             </li>
+
+            {/* Video Link */}
+            {resource.youtubeVideoId && (
+              <li>
+                <button
+                  onClick={() => scrollToSection("video")}
+                  className="w-full text-left py-2 bg-transparent border-0 cursor-pointer font-normal transition-colors duration-[var(--transition-fast)]"
+                  style={{
+                    fontSize: "var(--font-size-small)",
+                    color: "var(--text-primary)",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.color = "var(--text-link)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.color = "var(--text-primary)")
+                  }
+                >
+                  Video
+                </button>
+              </li>
+            )}
 
             {/* Origin Sources Link */}
             {originUrl && (

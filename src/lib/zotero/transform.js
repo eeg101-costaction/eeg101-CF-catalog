@@ -203,6 +203,47 @@ function extractUrlFromExtra(extra) {
 }
 
 /**
+ * Extract YouTube video ID from a URL
+ *
+ * @param {string} url - URL that may be a YouTube link
+ * @returns {string|null} YouTube video ID or null if URL is not a YouTube URL
+ *
+ * Handles formats:
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtu.be/VIDEO_ID
+ * - https://www.youtube.com/embed/VIDEO_ID
+ * - https://www.youtube-nocookie.com/embed/VIDEO_ID
+ *
+ * Example:
+ * "https://www.youtube.com/watch?v=dQw4w9WgXcQ" → "dQw4w9WgXcQ"
+ * "https://youtu.be/dQw4w9WgXcQ" → "dQw4w9WgXcQ"
+ * "https://example.com" → null
+ */
+function extractYouTubeVideoId(url) {
+  if (!url || typeof url !== "string") {
+    return null;
+  }
+
+  // youtube.com/watch?v=VIDEO_ID format
+  let match = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtu.be/VIDEO_ID format
+  match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtube.com/embed/VIDEO_ID format
+  match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtube-nocookie.com/embed/VIDEO_ID format
+  match = url.match(/youtube-nocookie\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  return null;
+}
+
+/**
  * Generate APA citation for bibliographic resources
  *
  * @param {Object} data - Raw Zotero item data
@@ -348,6 +389,24 @@ export function transformItem(rawItem, options = {}) {
     const extraUrl = extractUrlFromExtra(data.extra);
     if (extraUrl && extraUrl !== resource.url) {
       resource.extraUrl = extraUrl;
+    }
+  }
+
+  // Check for YouTube video in URLs
+  let youtubeId = null;
+  if (resource.url) {
+    youtubeId = extractYouTubeVideoId(resource.url);
+    if (youtubeId) {
+      resource.youtubeVideoId = youtubeId;
+    }
+  }
+  // Also check extraUrl for YouTube video if primary URL isn't YouTube
+  if (resource.extraUrl && !youtubeId) {
+    youtubeId = extractYouTubeVideoId(resource.extraUrl);
+    if (youtubeId) {
+      resource.youtubeVideoId = youtubeId;
+      // Don't store extraUrl if it's a YouTube video - we'll show it as an iframe instead
+      delete resource.extraUrl;
     }
   }
 
