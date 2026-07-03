@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/Button";
 import TextSection from "@/components/ui/TextSection";
 import InformationCard from "@/components/ui/InformationCard";
+import { HomePageSearch } from "@/components/HomePageSearch";
 
 export default function HomePage() {
   return (
@@ -15,7 +16,12 @@ export default function HomePage() {
         title="Resource catalog of the EEG101 Community Framework: Towards a more reliable, open, and responsible science of EEG."
         subtitle="Discover our community framework, a text intended to bring the community together, defining our principles and exploring resources to put them into practice."
       >
-        <SignFrameworkButton />
+        <div className="w-full flex flex-col items-center gap-6">
+          <div className="w-full max-w-4xl">
+            <HomePageSearch />
+          </div>
+          <SignFrameworkButton />
+        </div>
       </Hero>
 
       <div className="px-20">
