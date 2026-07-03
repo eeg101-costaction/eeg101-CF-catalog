@@ -201,6 +201,26 @@ export default function ResourceDetail({ resource, relatedResources = [] }) {
             </div>
           )}
 
+          {/* Extra URL if present (extracted from Extra field) */}
+          {resource.extraUrl && (
+            <div
+              className="mb-4 break-all"
+              style={{
+                fontSize: "var(--font-size-small)",
+                color: "var(--text-link)",
+              }}
+            >
+              <a
+                href={resource.extraUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "underline" }}
+              >
+                {resource.extraUrl}
+              </a>
+            </div>
+          )}
+
           {/* Tags Container */}
           <div className="flex gap-3 flex-wrap items-center mb-6">
             {/* Resource Type Tag */}

@@ -183,6 +183,26 @@ function hasTag(tags, tagName) {
 }
 
 /**
+ * Extract URL from the Extra field
+ *
+ * @param {string} extra - The Extra field content from Zotero (may contain free text with embedded URLs)
+ * @returns {string|null} First URL found in the Extra field, or null if none found
+ *
+ * Example:
+ * "Some text https://example.com more text" → "https://example.com"
+ * "No URL here" → null
+ */
+function extractUrlFromExtra(extra) {
+  if (!extra || typeof extra !== "string") {
+    return null;
+  }
+
+  // Match URLs starting with http:// or https://
+  const urlMatch = extra.match(/https?:\/\/[^\s]+/);
+  return urlMatch ? urlMatch[0].trim() : null;
+}
+
+/**
  * Generate APA citation for bibliographic resources
  *
  * @param {Object} data - Raw Zotero item data
@@ -314,6 +334,21 @@ export function transformItem(rawItem, options = {}) {
   // Add URL if available
   if (data.url) {
     resource.url = data.url;
+  }
+
+  // Extract URL from Extra field if available and no primary URL exists
+  if (data.extra && !resource.url) {
+    const extraUrl = extractUrlFromExtra(data.extra);
+    if (extraUrl) {
+      resource.extraUrl = extraUrl;
+    }
+  }
+  // Even if we have a primary URL, check for an extra URL
+  if (data.extra && resource.url) {
+    const extraUrl = extractUrlFromExtra(data.extra);
+    if (extraUrl && extraUrl !== resource.url) {
+      resource.extraUrl = extraUrl;
+    }
   }
 
   // Add dateModified (when the item was last modified in Zotero)
