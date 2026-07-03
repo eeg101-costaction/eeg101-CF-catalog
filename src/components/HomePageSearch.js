@@ -21,6 +21,7 @@ export function HomePageSearch() {
       onSearch={setSearchQuery}
       onCommit={handleSearchCommit}
       value={searchQuery}
+      autoFocus={true}
       placeholder="Search resources..."
     />
   );
