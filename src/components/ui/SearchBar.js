@@ -7,7 +7,7 @@ import { useState, useCallback } from "react";
  * Barre de recherche stylisée avec fond vert
  * Filtre les ressources par titre, auteurs, tags et abstract
  */
-export default function SearchBar({ resources = [], onSearch, onCommit, value }) {
+export default function SearchBar({ resources = [], onSearch, onCommit, value, autoFocus = false }) {
   // If a controlled value is provided, use it; otherwise fall back to internal state.
   const isControlled = value !== undefined;
   const [internalQuery, setInternalQuery] = useState("");
@@ -54,10 +54,11 @@ export default function SearchBar({ resources = [], onSearch, onCommit, value })
 
         <input
           type="text"
-          placeholder="Search a resource..."
+          placeholder="Search resources..."
           value={searchQuery}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          autoFocus={autoFocus}
           className="w-full pl-12 pr-10 py-3 text-gray-800 placeholder-gray-600 rounded-full outline-none transition-colors bg-[#BDD4F2] focus:bg-[#A8C5E8] focus:ring-2"
           aria-label="Search resources"
         />
