@@ -22,7 +22,6 @@ export function HomePageSearch() {
       onCommit={handleSearchCommit}
       value={searchQuery}
       autoFocus={true}
-      placeholder="Search resources..."
     />
   );
 }
