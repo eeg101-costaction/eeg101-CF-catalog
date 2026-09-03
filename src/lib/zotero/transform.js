@@ -183,6 +183,67 @@ function hasTag(tags, tagName) {
 }
 
 /**
+ * Extract URL from the Extra field
+ *
+ * @param {string} extra - The Extra field content from Zotero (may contain free text with embedded URLs)
+ * @returns {string|null} First URL found in the Extra field, or null if none found
+ *
+ * Example:
+ * "Some text https://example.com more text" → "https://example.com"
+ * "No URL here" → null
+ */
+function extractUrlFromExtra(extra) {
+  if (!extra || typeof extra !== "string") {
+    return null;
+  }
+
+  // Match URLs starting with http:// or https://
+  const urlMatch = extra.match(/https?:\/\/[^\s]+/);
+  return urlMatch ? urlMatch[0].trim() : null;
+}
+
+/**
+ * Extract YouTube video ID from a URL
+ *
+ * @param {string} url - URL that may be a YouTube link
+ * @returns {string|null} YouTube video ID or null if URL is not a YouTube URL
+ *
+ * Handles formats:
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtu.be/VIDEO_ID
+ * - https://www.youtube.com/embed/VIDEO_ID
+ * - https://www.youtube-nocookie.com/embed/VIDEO_ID
+ *
+ * Example:
+ * "https://www.youtube.com/watch?v=dQw4w9WgXcQ" → "dQw4w9WgXcQ"
+ * "https://youtu.be/dQw4w9WgXcQ" → "dQw4w9WgXcQ"
+ * "https://example.com" → null
+ */
+function extractYouTubeVideoId(url) {
+  if (!url || typeof url !== "string") {
+    return null;
+  }
+
+  // youtube.com/watch?v=VIDEO_ID format
+  let match = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtu.be/VIDEO_ID format
+  match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtube.com/embed/VIDEO_ID format
+  match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtube-nocookie.com/embed/VIDEO_ID format
+  match = url.match(/youtube-nocookie\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  return null;
+}
+
+/**
  * Generate APA citation for bibliographic resources
  *
  * @param {Object} data - Raw Zotero item data
@@ -314,6 +375,39 @@ export function transformItem(rawItem, options = {}) {
   // Add URL if available
   if (data.url) {
     resource.url = data.url;
+  }
+
+  // Extract URL from Extra field if available and no primary URL exists
+  if (data.extra && !resource.url) {
+    const extraUrl = extractUrlFromExtra(data.extra);
+    if (extraUrl) {
+      resource.extraUrl = extraUrl;
+    }
+  }
+  // Even if we have a primary URL, check for an extra URL
+  if (data.extra && resource.url) {
+    const extraUrl = extractUrlFromExtra(data.extra);
+    if (extraUrl && extraUrl !== resource.url) {
+      resource.extraUrl = extraUrl;
+    }
+  }
+
+  // Check for YouTube video in URLs
+  let youtubeId = null;
+  if (resource.url) {
+    youtubeId = extractYouTubeVideoId(resource.url);
+    if (youtubeId) {
+      resource.youtubeVideoId = youtubeId;
+    }
+  }
+  // Also check extraUrl for YouTube video if primary URL isn't YouTube
+  if (resource.extraUrl && !youtubeId) {
+    youtubeId = extractYouTubeVideoId(resource.extraUrl);
+    if (youtubeId) {
+      resource.youtubeVideoId = youtubeId;
+      // Don't store extraUrl if it's a YouTube video - we'll show it as an iframe instead
+      delete resource.extraUrl;
+    }
   }
 
   // Add dateModified (when the item was last modified in Zotero)
